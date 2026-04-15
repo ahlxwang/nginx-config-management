@@ -15,7 +15,7 @@ class BaseConfig:
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
     NGINX_CONFIGS_BASE_DIR = os.environ.get('NGINX_CONFIGS_BASE_DIR', '/data/nginx-configs')
     WTF_CSRF_ENABLED = True
-    RATELIMIT_STORAGE_URI = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
+    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI', os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0'))
 
 
 class DevelopmentConfig(BaseConfig):

@@ -1,11 +1,10 @@
-# app/db.py
 import pymysql
 import pymysql.cursors
+from contextlib import contextmanager
 from flask import current_app, g
 
 
 def get_db():
-    """获取当前请求的数据库连接（存储在 Flask g 对象中）"""
     if 'db' not in g:
         cfg = current_app.config
         g.db = pymysql.connect(
@@ -17,7 +16,10 @@ def get_db():
             charset='utf8mb4',
             cursorclass=pymysql.cursors.DictCursor,
             autocommit=True,
+            connect_timeout=5,
         )
+    else:
+        g.db.ping(reconnect=True)
     return g.db
 
 
@@ -28,21 +30,33 @@ def close_db(e=None):
 
 
 def query(sql, args=None):
-    """执行查询，返回所有行（list of dict）"""
     with get_db().cursor() as cursor:
         cursor.execute(sql, args or ())
         return cursor.fetchall()
 
 
 def get_one(sql, args=None):
-    """执行查询，返回单行（dict 或 None）"""
     with get_db().cursor() as cursor:
         cursor.execute(sql, args or ())
         return cursor.fetchone()
 
 
 def execute(sql, args=None):
-    """执行 INSERT/UPDATE/DELETE，返回 lastrowid"""
     with get_db().cursor() as cursor:
         cursor.execute(sql, args or ())
         return cursor.lastrowid
+
+
+@contextmanager
+def transaction():
+    """多步操作的事务上下文管理器"""
+    db = get_db()
+    db.autocommit(False)
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.autocommit(True)

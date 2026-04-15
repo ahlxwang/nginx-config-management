@@ -8,6 +8,9 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     app.config.from_object(config_map[config_name])
 
+    if config_name == 'production' and app.config.get('SECRET_KEY') == 'dev-secret-change-in-prod':
+        raise RuntimeError('SECRET_KEY must be set via environment variable in production')
+
     # 初始化扩展
     csrf.init_app(app)
     login_manager.init_app(app)
