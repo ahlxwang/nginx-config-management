@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配置管理 — 树形结构原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; padding: 20px; }
+
+  .page-title { background: #1a1a2e; color: #fff; padding: 16px 24px; font-size: 18px; font-weight: bold; margin-bottom: 20px; border-radius: 8px; }
+
+  .screen { background: #fff; border: 2px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 24px; }
+  .screen-title { background: #37474f; color: #fff; padding: 10px 16px; font-size: 14px; font-weight: bold; }
+  .screen-body { padding: 0; }
+
+  /* Tree Layout */
+  .tree-layout { display: flex; height: 500px; }
+  .tree-sidebar { width: 280px; background: #fafafa; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; }
+  .tree-header { padding: 12px; border-bottom: 1px solid #e0e0e0; background: #fff; }
+  .cluster-select { width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+  .search-box { margin-top: 8px; width: 100%; padding: 6px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+  .tree-container { flex: 1; overflow-y: auto; padding: 8px; }
+  .tree-node { padding: 4px 8px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; border-radius: 4px; }
+  .tree-node:hover { background: #e3f2fd; }
+  .tree-node.active { background: #1565c0; color: #fff; }
+  .tree-node.folder { font-weight: 500; }
+  .tree-icon { width: 16px; height: 16px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .tree-icon.folder { color: #ffa726; }
+  .tree-icon.file { color: #42a5f5; }
+  .tree-icon.collapsed::before { content: '▶'; }
+  .tree-icon.expanded::before { content: '▼'; }
+  .tree-children { margin-left: 16px; }
+  .tree-node.level-1 { padding-left: 8px; }
+  .tree-node.level-2 { padding-left: 24px; }
+  .tree-node.level-3 { padding-left: 40px; }
+
+  /* Editor Area */
+  .editor-area { flex: 1; display: flex; flex-direction: column; background: #fff; }
+  .editor-toolbar { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+  .editor-title { font-size: 13px; font-weight: bold; color: #333; display: flex; align-items: center; gap: 8px; }
+  .file-path { font-size: 11px; color: #999; font-weight: normal; }
+  .editor-actions { display: flex; gap: 6px; }
+  .btn { padding: 6px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+  .btn-primary { background: #1565c0; color: #fff; }
+  .btn-success { background: #2e7d32; color: #fff; }
+  .btn-warning { background: #f57c00; color: #fff; }
+  .btn-secondary { background: #757575; color: #fff; }
+  .code-editor { flex: 1; background: #1e1e1e; padding: 16px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; color: #d4d4d4; overflow-y: auto; line-height: 1.6; }
+  .code-line { display: flex; }
+  .line-number { color: #858585; width: 40px; text-align: right; padding-right: 12px; user-select: none; flex-shrink: 0; }
+  .line-content { flex: 1; }
+  .code-comment { color: #6a9955; }
+  .code-key { color: #9cdcfe; }
+  .code-value { color: #ce9178; }
+  .code-block { color: #c586c0; }
+  .code-directive { color: #569cd6; }
+
+  /* Status Bar */
+  .status-bar { padding: 6px 16px; background: #263238; color: #b0bec5; font-size: 11px; display: flex; justify-content: space-between; }
+
+  /* Recent Files */
+  .recent-files { padding: 8px 12px; background: #fff3e0; border-bottom: 1px solid #ffcc80; font-size: 12px; }
+  .recent-files strong { color: #e65100; }
+  .recent-file-tag { display: inline-block; background: #fff; border: 1px solid #ffcc80; border-radius: 3px; padding: 2px 6px; margin: 0 4px; cursor: pointer; }
+  .recent-file-tag:hover { background: #ffe0b2; }
+
+  /* Empty State */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #999; }
+  .empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state-text { font-size: 14px; }
+
+  /* Tabs */
+  .editor-tabs { display: flex; gap: 2px; padding: 8px 12px 0 12px; background: #fafafa; border-bottom: 1px solid #e0e0e0; }
+  .editor-tab { padding: 6px 12px; font-size: 12px; background: #e0e0e0; border-radius: 4px 4px 0 0; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .editor-tab.active { background: #fff; font-weight: bold; }
+  .tab-close { color: #999; font-size: 14px; }
+  .tab-close:hover { color: #333; }
+</style>
+</head>
+<body>
+
+<div class="page-title">配置管理 — 树形目录结构原型</div>
+
+<!-- 主界面 -->
+<div class="screen">
+  <div class="screen-title">配置管理 — 树形视图 + 编辑器</div>
+  <div class="screen-body">
+    <div class="tree-layout">
+
+      <!-- 左侧树形目录 -->
+      <div class="tree-sidebar">
+        <div class="tree-header">
+          <select class="cluster-select">
+            <option>生产集群 (cluster-prod)</option>
+            <option>测试集群 (cluster-test)</option>
+            <option>开发集群 (cluster-dev)</option>
+          </select>
+          <input type="text" class="search-box" placeholder="🔍 搜索配置文件...">
+        </div>
+
+        <div class="recent-files">
+          <strong>最近编辑：</strong>
+          <span class="recent-file-tag">api.conf</span>
+          <span class="recent-file-tag">nginx.conf</span>
+        </div>
+
+        <div class="tree-container">
+          <!-- Root -->
+          <div class="tree-node folder level-1">
+            <span class="tree-icon folder expanded"></span>
+            <span>📁 cluster-prod</span>
+          </div>
+
+          <!-- nginx.conf -->
+          <div class="tree-node level-2 active">
+            <span class="tree-icon file"></span>
+            <span>📄 nginx.conf</span>
+          </div>
+
+          <!-- conf.d folder -->
+          <div class="tree-node folder level-2">
+            <span class="tree-icon folder expanded"></span>
+            <span>📁 conf.d</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 api.conf</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 web.conf</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 admin.conf</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 mobile-api.conf</span>
+          </div>
+
+          <!-- sites-enabled folder -->
+          <div class="tree-node folder level-2">
+            <span class="tree-icon folder expanded"></span>
+            <span>📁 sites-enabled</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 site1.conf</span>
+          </div>
+          <div class="tree-node level-3">
+            <span class="tree-icon file"></span>
+            <span>📄 site2.conf</span>
+          </div>
+
+          <!-- upstream folder -->
+          <div class="tree-node folder level-2">
+            <span class="tree-icon folder collapsed"></span>
+            <span>📁 upstream</span>
+          </div>
+
+          <!-- ssl folder -->
+          <div class="tree-node folder level-2">
+            <span class="tree-icon folder collapsed"></span>
+            <span>📁 ssl</span>
+          </div>
+
+          <!-- includes folder -->
+          <div class="tree-node folder level-2">
+            <span class="tree-icon folder collapsed"></span>
+            <span>📁 includes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧编辑器 -->
+      <div class="editor-area">
+        <div class="editor-tabs">
+          <div class="editor-tab active">
+            <span>nginx.conf</span>
+            <span class="tab-close">×</span>
+          </div>
+          <div class="editor-tab">
+            <span>api.conf</span>
+            <span class="tab-close">×</span>
+          </div>
+        </div>
+
+        <div class="editor-toolbar">
+          <div class="editor-title">
+            <span>📄 nginx.conf</span>
+            <span class="file-path">/cluster-prod/nginx.conf</span>
+          </div>
+          <div class="editor-actions">
+            <button class="btn btn-secondary">取消</button>
+            <button class="btn btn-primary">保存</button>
+            <button class="btn btn-warning">下发</button>
+            <button class="btn btn-success">校验</button>
+          </div>
+        </div>
+
+        <div class="code-editor">
+<div class="code-line"><span class="line-number">1</span><span class="line-content"><span class="code-comment"># Nginx 主配置文件</span></span></div>
+<div class="code-line"><span class="line-number">2</span><span class="line-content"><span class="code-directive">user</span> <span class="code-value">nginx</span>;</span></div>
+<div class="code-line"><span class="line-number">3</span><span class="line-content"><span class="code-directive">worker_processes</span> <span class="code-value">auto</span>;</span></div>
+<div class="code-line"><span class="line-number">4</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">5</span><span class="line-content"><span class="code-directive">error_log</span> <span class="code-value">/var/log/nginx/error.log</span> <span class="code-value">warn</span>;</span></div>
+<div class="code-line"><span class="line-number">6</span><span class="line-content"><span class="code-directive">pid</span> <span class="code-value">/var/run/nginx.pid</span>;</span></div>
+<div class="code-line"><span class="line-number">7</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">8</span><span class="line-content"><span class="code-block">events</span> {</span></div>
+<div class="code-line"><span class="line-number">9</span><span class="line-content">    <span class="code-directive">worker_connections</span> <span class="code-value">1024</span>;</span></div>
+<div class="code-line"><span class="line-number">10</span><span class="line-content">}</span></div>
+<div class="code-line"><span class="line-number">11</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">12</span><span class="line-content"><span class="code-block">http</span> {</span></div>
+<div class="code-line"><span class="line-number">13</span><span class="line-content">    <span class="code-directive">include</span> <span class="code-value">/etc/nginx/mime.types</span>;</span></div>
+<div class="code-line"><span class="line-number">14</span><span class="line-content">    <span class="code-directive">default_type</span> <span class="code-value">application/octet-stream</span>;</span></div>
+<div class="code-line"><span class="line-number">15</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">16</span><span class="line-content">    <span class="code-comment"># 日志格式</span></span></div>
+<div class="code-line"><span class="line-number">17</span><span class="line-content">    <span class="code-directive">log_format</span> <span class="code-key">main</span> <span class="code-value">'$remote_addr - $remote_user [$time_local]'</span>;</span></div>
+<div class="code-line"><span class="line-number">18</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">19</span><span class="line-content">    <span class="code-directive">access_log</span> <span class="code-value">/var/log/nginx/access.log</span> <span class="code-key">main</span>;</span></div>
+<div class="code-line"><span class="line-number">20</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">21</span><span class="line-content">    <span class="code-directive">sendfile</span> <span class="code-value">on</span>;</span></div>
+<div class="code-line"><span class="line-number">22</span><span class="line-content">    <span class="code-directive">keepalive_timeout</span> <span class="code-value">65</span>;</span></div>
+<div class="code-line"><span class="line-number">23</span><span class="line-content"></span></div>
+<div class="code-line"><span class="line-number">24</span><span class="line-content">    <span class="code-comment"># 引入其他配置文件</span></span></div>
+<div class="code-line"><span class="line-number">25</span><span class="line-content">    <span class="code-directive">include</span> <span class="code-value">/etc/nginx/conf.d/*.conf</span>;</span></div>
+<div class="code-line"><span class="line-number">26</span><span class="line-content">    <span class="code-directive">include</span> <span class="code-value">/etc/nginx/sites-enabled/*</span>;</span></div>
+<div class="code-line"><span class="line-number">27</span><span class="line-content">}</span></div>
+        </div>
+
+        <div class="status-bar">
+          <span>UTF-8 | LF | Nginx Config</span>
+          <span>行 1, 列 1 | 共 27 行</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- 空状态示例 -->
+<div class="screen">
+  <div class="screen-title">未选择文件时的空状态</div>
+  <div class="screen-body">
+    <div class="tree-layout">
+      <div class="tree-sidebar">
+        <div class="tree-header">
+          <select class="cluster-select">
+            <option>生产集群 (cluster-prod)</option>
+          </select>
+          <input type="text" class="search-box" placeholder="🔍 搜索配置文件...">
+        </div>
+        <div class="tree-container">
+          <div class="tree-node folder level-1">
+            <span class="tree-icon folder expanded"></span>
+            <span>📁 cluster-prod</span>
+          </div>
+          <div class="tree-node level-2">
+            <span class="tree-icon file"></span>
+            <span>📄 nginx.conf</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-area">
+        <div class="empty-state">
+          <div class="empty-state-icon">📄</div>
+          <div class="empty-state-text">请从左侧选择一个配置文件进行编辑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:16px;border-radius:4px;margin-top:20px">
+  <strong>树形结构的关键特性：</strong><br><br>
+  ✅ 左侧树形目录，支持文件夹展开/折叠<br>
+  ✅ 顶部集群选择器，切换不同集群的配置<br>
+  ✅ 搜索框支持文件名模糊搜索<br>
+  ✅ "最近编辑"快速入口<br>
+  ✅ 右侧代码编辑器，支持多标签页<br>
+  ✅ 工具栏提供：保存、下发、校验、取消操作<br>
+  ✅ 状态栏显示文件信息和光标位置
+</div>
+
+</body>
+</html>

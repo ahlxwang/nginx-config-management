@@ -1,0 +1,124 @@
+<h2>配置文件管理方案优化</h2>
+<p class="subtitle">针对多配置文件场景的设计改进</p>
+
+<div class="option" data-choice="a">
+  <div class="option-header">
+    <div class="option-label">方案 A</div>
+    <h3>树形目录结构（推荐）</h3>
+  </div>
+  <div class="option-content">
+    <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:12px;margin:12px 0;font-family:monospace;font-size:12px">
+nginx-configs/<br>
+├── cluster-prod/<br>
+│   ├── nginx.conf<br>
+│   ├── conf.d/<br>
+│   │   ├── api.conf<br>
+│   │   ├── web.conf<br>
+│   │   └── admin.conf<br>
+│   └── sites-enabled/<br>
+│       ├── site1.conf<br>
+│       └── site2.conf<br>
+└── cluster-test/<br>
+    └── ...
+    </div>
+
+    <p><strong>界面设计：</strong></p>
+    <ul>
+      <li><strong>左侧：</strong>树形目录导航（类似 VS Code 文件树）</li>
+      <li><strong>右侧：</strong>配置文件编辑器（点击文件后显示内容）</li>
+      <li>支持文件夹展开/折叠</li>
+      <li>支持搜索文件名（模糊匹配）</li>
+      <li>文件图标区分类型（.conf / .include / 目录）</li>
+    </ul>
+
+    <p><strong>优点：</strong></p>
+    <ul>
+      <li>直观展示目录结构，符合 Nginx 实际配置组织方式</li>
+      <li>支持任意深度的子目录</li>
+      <li>可以批量操作整个目录</li>
+    </ul>
+
+    <p><strong>技术实现：</strong></p>
+    <ul>
+      <li>前端：使用 jsTree 或 Vue Tree 组件</li>
+      <li>后端：递归扫描目录，返回 JSON 树结构</li>
+      <li>数据库：nginx_config 表存储文件路径（相对路径）</li>
+    </ul>
+  </div>
+</div>
+
+<div class="option" data-choice="b">
+  <div class="option-header">
+    <div class="option-label">方案 B</div>
+    <h3>分组 + 列表视图</h3>
+  </div>
+  <div class="option-content">
+    <p><strong>界面设计：</strong></p>
+    <ul>
+      <li><strong>顶部：</strong>集群选择下拉框 + 配置分组标签（主配置 / 虚拟主机 / 上游服务器）</li>
+      <li><strong>中间：</strong>配置文件列表（表格形式，支持分页）</li>
+      <li><strong>搜索栏：</strong>按文件名、路径、修改时间筛选</li>
+      <li>点击文件名进入编辑页</li>
+    </ul>
+
+    <p><strong>优点：</strong></p>
+    <ul>
+      <li>列表视图信息密度高，一屏可显示更多文件</li>
+      <li>支持批量选择、批量下发</li>
+      <li>可以按修改时间排序，快速找到最近编辑的文件</li>
+    </ul>
+
+    <p><strong>缺点：</strong></p>
+    <ul>
+      <li>不直观展示目录层级关系</li>
+      <li>需要手动分组管理</li>
+    </ul>
+  </div>
+</div>
+
+<div class="option" data-choice="c">
+  <div class="option-header">
+    <div class="option-label">方案 C</div>
+    <h3>混合模式（树形 + 列表切换）</h3>
+  </div>
+  <div class="option-content">
+    <p><strong>界面设计：</strong></p>
+    <ul>
+      <li>顶部提供视图切换按钮：树形视图 / 列表视图</li>
+      <li><strong>树形视图：</strong>适合浏览目录结构</li>
+      <li><strong>列表视图：</strong>适合批量操作和搜索</li>
+      <li>两种视图共享同一个编辑器</li>
+    </ul>
+
+    <p><strong>优点：</strong></p>
+    <ul>
+      <li>灵活性最高，适应不同使用场景</li>
+      <li>新手用树形视图，熟练用户用列表视图</li>
+    </ul>
+
+    <p><strong>缺点：</strong></p>
+    <ul>
+      <li>开发成本较高</li>
+      <li>需要维护两套视图逻辑</li>
+    </ul>
+  </div>
+</div>
+
+<div style="background:#e3f2fd;border-left:4px solid #2196f3;padding:12px 16px;border-radius:4px;margin-top:20px">
+  <strong>我的建议：</strong>选择<strong>方案 A（树形目录结构）</strong><br><br>
+  理由：<br>
+  1. Nginx 配置本身就是目录结构组织的（nginx.conf + conf.d/ + sites-enabled/）<br>
+  2. 树形视图最直观，运维人员一眼就能找到目标文件<br>
+  3. 支持目录级别的操作（如：下发整个 conf.d/ 目录）<br>
+  4. 技术成熟，jsTree 等组件开箱即用
+</div>
+
+<div style="background:#fff8e1;border-left:4px solid #ffc107;padding:12px 16px;border-radius:4px;margin-top:12px">
+  <strong>额外功能建议：</strong><br>
+  • <strong>文件搜索：</strong>支持按文件名模糊搜索，高亮匹配结果<br>
+  • <strong>最近编辑：</strong>顶部显示"最近编辑的 5 个文件"快速入口<br>
+  • <strong>收藏功能：</strong>常用配置文件可以加星标，快速访问<br>
+  • <strong>文件对比：</strong>选择两个文件进行 diff 对比（可选）
+</div>
+
+<p style="margin-top:20px;font-size:14px;color:#666">你更倾向于哪种方案？</p>

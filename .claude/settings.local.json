@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(touch app/__init__.py app/config.py app/db.py app/extensions.py app/auth.py)",
+      "Bash(touch app/models/__init__.py app/models/user.py app/models/cluster.py app/models/host.py app/models/nginx_config.py)",
+      "Bash(touch app/services/__init__.py app/services/deploy.py app/services/nginx.py app/services/config_file.py)",
+      "Bash(touch app/routes/__init__.py app/routes/config.py app/routes/cluster.py app/routes/host.py app/routes/user.py app/routes/log.py)",
+      "Bash(touch app/tasks/__init__.py app/tasks/deploy.py)"
+    ]
+  }
+}

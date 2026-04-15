@@ -1,0 +1,82 @@
+<h2>架构设计方案选择</h2>
+<p class="subtitle">基于现有设计文档，我提出 3 种架构呈现方式</p>
+
+<div class="option" data-choice="a">
+  <div class="option-header">
+    <div class="option-label">方案 A</div>
+    <h3>传统三层架构（推荐）</h3>
+  </div>
+  <div class="option-content">
+    <p><strong>架构图包含：</strong></p>
+    <ul>
+      <li>表示层（前端页面）→ 业务逻辑层（Flask 路由 + 服务）→ 数据访问层（MySQL）</li>
+      <li>外部依赖：SSH/rsync 与 Nginx 服务器交互</li>
+      <li>核心数据流：配置下发流程（编辑 → 校验 → 同步 → reload）</li>
+    </ul>
+
+    <p><strong>原型图包含：</strong></p>
+    <ul>
+      <li>登录页</li>
+      <li>首页（导航菜单）</li>
+      <li>配置管理列表页</li>
+      <li>配置编辑页</li>
+      <li>集群管理页</li>
+      <li>操作日志页</li>
+    </ul>
+
+    <p><strong>优点：</strong>清晰直观，符合 Web 应用标准架构，易于理解和实施</p>
+    <p><strong>适用场景：</strong>内部运维工具，团队规模 2-10 人</p>
+  </div>
+</div>
+
+<div class="option" data-choice="b">
+  <div class="option-header">
+    <div class="option-label">方案 B</div>
+    <h3>领域驱动设计（DDD）风格</h3>
+  </div>
+  <div class="option-content">
+    <p><strong>架构图包含：</strong></p>
+    <ul>
+      <li>按业务领域划分：配置域、集群域、主机域、用户域、审计域</li>
+      <li>每个域包含：实体、仓储、服务、API</li>
+      <li>跨域协作通过事件或服务调用</li>
+    </ul>
+
+    <p><strong>原型图：</strong>与方案 A 相同（6 个核心页面）</p>
+
+    <p><strong>优点：</strong>业务边界清晰，适合复杂业务逻辑和团队协作</p>
+    <p><strong>缺点：</strong>对于简单系统可能过度设计</p>
+    <p><strong>适用场景：</strong>需要长期演进、多团队协作的大型系统</p>
+  </div>
+</div>
+
+<div class="option" data-choice="c">
+  <div class="option-header">
+    <div class="option-label">方案 C</div>
+    <h3>微服务架构</h3>
+  </div>
+  <div class="option-content">
+    <p><strong>架构图包含：</strong></p>
+    <ul>
+      <li>API 网关 → 多个独立服务（配置服务、集群服务、主机服务、用户服务）</li>
+      <li>每个服务独立数据库或共享数据库</li>
+      <li>服务间通过 REST API 或消息队列通信</li>
+    </ul>
+
+    <p><strong>原型图：</strong>与方案 A 相同（6 个核心页面）</p>
+
+    <p><strong>优点：</strong>服务独立部署、扩展灵活</p>
+    <p><strong>缺点：</strong>运维复杂度高，对于单体应用来说过度设计</p>
+    <p><strong>适用场景：</strong>高并发、需要独立扩展的大规模系统</p>
+  </div>
+</div>
+
+<div style="background:#e3f2fd;border-left:4px solid #2196f3;padding:12px 16px;border-radius:4px;margin-top:20px">
+  <strong>我的建议：</strong>选择<strong>方案 A（传统三层架构）</strong><br><br>
+  理由：<br>
+  1. 现有设计文档已经是单体 Flask 应用，方案 A 最贴合实际<br>
+  2. 内部运维工具，不需要复杂的分布式架构<br>
+  3. 开发和维护成本最低，适合小团队快速迭代
+</div>
+
+<p style="margin-top:20px;font-size:14px;color:#666">请选择你偏好的架构方案</p>

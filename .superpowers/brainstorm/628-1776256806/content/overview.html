@@ -1,0 +1,67 @@
+<h2>Nginx 集群配置管理系统 — 设计文档解析</h2>
+<p class="subtitle">我从 docx 中提取到以下关键信息，请确认是否准确</p>
+
+<div class="section">
+  <h3>技术栈</h3>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
+    <span style="background:#e8f4fd;border:1px solid #90caf9;border-radius:6px;padding:6px 14px;font-size:14px">前端：HTML + CSS + JavaScript</span>
+    <span style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:6px 14px;font-size:14px">后端：Flask (Python 3.7~3.10)</span>
+    <span style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:6px 14px;font-size:14px">数据库：MySQL</span>
+    <span style="background:#f3e5f5;border:1px solid #ce93d8;border-radius:6px;padding:6px 14px;font-size:14px">部署：rsync + SSH</span>
+  </div>
+</div>
+
+<div class="section">
+  <h3>核心功能模块（共 7 个）</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 1</div>
+      <h3 style="margin:4px 0">登录 / 首页</h3>
+      <p style="font-size:13px;color:#666">账号密码登录，Session 鉴权</p>
+    </div>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 2</div>
+      <h3 style="margin:4px 0">配置管理</h3>
+      <p style="font-size:13px;color:#666">查看/编辑/下发/校验/reload nginx 配置文件</p>
+    </div>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 3</div>
+      <h3 style="margin:4px 0">主机管理</h3>
+      <p style="font-size:13px;color:#666">SSH 主机的增删改查</p>
+    </div>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 4</div>
+      <h3 style="margin:4px 0">集群管理</h3>
+      <p style="font-size:13px;color:#666">集群的增删改查，关联主机</p>
+    </div>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 5</div>
+      <h3 style="margin:4px 0">用户管理</h3>
+      <p style="font-size:13px;color:#666">普通用户 / 管理员，权限控制</p>
+    </div>
+    <div style="border:1px solid #ddd;border-radius:8px;padding:12px">
+      <div class="label">模块 6</div>
+      <h3 style="margin:4px 0">操作日志</h3>
+      <p style="font-size:13px;color:#666">关键操作记录，支持筛选查询</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>数据库表（6 张）</h3>
+  <div style="font-size:13px;color:#444;line-height:2">
+    <code>clusters</code> — 集群信息 &nbsp;|&nbsp;
+    <code>hosts</code> — 主机信息 &nbsp;|&nbsp;
+    <code>nginx_config</code> — 配置文件 &nbsp;|&nbsp;
+    <code>oplog</code> — 操作日志 &nbsp;|&nbsp;
+    <code>tasklog</code> — 下发任务日志 &nbsp;|&nbsp;
+    <code>users</code> — 用户表
+  </div>
+</div>
+
+<div style="background:#fff8e1;border-left:4px solid #ffc107;padding:12px 16px;border-radius:4px;margin-top:16px">
+  <strong>接下来我将生成：</strong><br>
+  1. 系统架构图（技术分层 + 数据流）<br>
+  2. 各页面原型图（线框图风格）<br>
+  3. 完整架构设计文档（Markdown）
+</div>

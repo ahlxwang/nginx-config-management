@@ -1,0 +1,112 @@
+<h2>系统架构设计 — 三层架构</h2>
+<p class="subtitle">Nginx 集群配置管理系统</p>
+
+<div style="background:#fff;border:2px solid #333;border-radius:8px;padding:20px;margin:20px 0">
+
+  <!-- 表示层 -->
+  <div style="background:#e3f2fd;border:2px solid #2196f3;border-radius:6px;padding:16px;margin-bottom:16px">
+    <h3 style="margin:0 0 12px 0;color:#1976d2">表示层（Presentation Layer）</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">登录页</div>
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">配置管理</div>
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">集群管理</div>
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">主机管理</div>
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">用户管理</div>
+      <div style="background:#fff;border:1px solid #90caf9;border-radius:4px;padding:8px;font-size:13px;text-align:center">操作日志</div>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#555">技术：HTML + CSS + JavaScript</div>
+  </div>
+
+  <div style="text-align:center;margin:12px 0">
+    <div style="display:inline-block;width:2px;height:30px;background:#666"></div>
+    <div style="margin-top:-5px">↓ HTTP Request/Response</div>
+  </div>
+
+  <!-- 业务逻辑层 -->
+  <div style="background:#e8f5e9;border:2px solid #4caf50;border-radius:6px;padding:16px;margin-bottom:16px">
+    <h3 style="margin:0 0 12px 0;color:#388e3c">业务逻辑层（Business Logic Layer）</h3>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <div style="font-weight:bold;margin-bottom:6px;font-size:14px">Flask 路由层</div>
+        <div style="background:#fff;border:1px solid #a5d6a7;border-radius:4px;padding:8px;font-size:12px">
+          • /login - 登录认证<br>
+          • /config/* - 配置管理<br>
+          • /cluster/* - 集群管理<br>
+          • /host/* - 主机管理<br>
+          • /user/* - 用户管理<br>
+          • /log/* - 日志查询
+        </div>
+      </div>
+
+      <div>
+        <div style="font-weight:bold;margin-bottom:6px;font-size:14px">核心服务</div>
+        <div style="background:#fff;border:1px solid #a5d6a7;border-radius:4px;padding:8px;font-size:12px">
+          • ConfigService - 配置文件操作<br>
+          • DeployService - SSH/rsync 部署<br>
+          • NginxService - nginx -t / reload<br>
+          • AuthService - Session 鉴权<br>
+          • LogService - 操作日志记录
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:8px;font-size:12px;color:#555">技术：Flask (Python 3.7~3.10)</div>
+  </div>
+
+  <div style="text-align:center;margin:12px 0">
+    <div style="display:inline-block;width:2px;height:30px;background:#666"></div>
+    <div style="margin-top:-5px">↓ SQL Query</div>
+  </div>
+
+  <!-- 数据访问层 -->
+  <div style="background:#fff3e0;border:2px solid #ff9800;border-radius:6px;padding:16px;margin-bottom:16px">
+    <h3 style="margin:0 0 12px 0;color:#f57c00">数据访问层（Data Access Layer）</h3>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">users<br><span style="font-size:11px;color:#666">用户表</span></div>
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">clusters<br><span style="font-size:11px;color:#666">集群表</span></div>
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">hosts<br><span style="font-size:11px;color:#666">主机表</span></div>
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">nginx_config<br><span style="font-size:11px;color:#666">配置表</span></div>
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">oplog<br><span style="font-size:11px;color:#666">操作日志</span></div>
+      <div style="background:#fff;border:1px solid #ffcc80;border-radius:4px;padding:8px;font-size:12px;text-align:center">tasklog<br><span style="font-size:11px;color:#666">任务日志</span></div>
+    </div>
+    <div style="margin-top:8px;font-size:12px;color:#555">技术：MySQL 8.0+</div>
+  </div>
+
+  <div style="text-align:center;margin:12px 0">
+    <div style="display:inline-block;width:2px;height:30px;background:#666"></div>
+    <div style="margin-top:-5px">↔ SSH/rsync</div>
+  </div>
+
+  <!-- 外部系统 -->
+  <div style="background:#f3e5f5;border:2px solid #9c27b0;border-radius:6px;padding:16px">
+    <h3 style="margin:0 0 12px 0;color:#7b1fa2">外部系统（External Systems）</h3>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <div style="background:#fff;border:1px solid #ce93d8;border-radius:4px;padding:12px;text-align:center;flex:1;max-width:200px">
+        <div style="font-weight:bold;margin-bottom:4px">Nginx 服务器 1</div>
+        <div style="font-size:11px;color:#666">SSH 连接<br>配置同步<br>nginx -t / reload</div>
+      </div>
+      <div style="background:#fff;border:1px solid #ce93d8;border-radius:4px;padding:12px;text-align:center;flex:1;max-width:200px">
+        <div style="font-weight:bold;margin-bottom:4px">Nginx 服务器 2</div>
+        <div style="font-size:11px;color:#666">SSH 连接<br>配置同步<br>nginx -t / reload</div>
+      </div>
+      <div style="background:#fff;border:1px solid #ce93d8;border-radius:4px;padding:12px;text-align:center;flex:1;max-width:200px">
+        <div style="font-weight:bold;margin-bottom:4px">Nginx 服务器 N</div>
+        <div style="font-size:11px;color:#666">SSH 连接<br>配置同步<br>nginx -t / reload</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:12px 16px;border-radius:4px;margin-top:20px">
+  <strong>核心数据流：配置下发流程</strong><br>
+  1. 用户在前端编辑配置文件<br>
+  2. Flask 后端保存到 MySQL（nginx_config 表）<br>
+  3. 用户点击"下发"，后端通过 rsync 同步配置到目标服务器<br>
+  4. 执行 nginx -t 校验配置<br>
+  5. 校验通过后执行 nginx -s reload<br>
+  6. 记录操作日志到 oplog 和 tasklog
+</div>
+
+<p style="margin-top:20px;font-size:14px;color:#666">这个架构设计看起来如何？</p>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nginx 配置管理系统 — 原型图</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+
+  .page-title { background: #1a1a2e; color: #fff; padding: 16px 24px; font-size: 18px; font-weight: bold; }
+  .page-title span { font-size: 13px; font-weight: normal; color: #aaa; margin-left: 12px; }
+
+  .prototype-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px; }
+
+  .screen { background: #fff; border: 2px solid #ddd; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .screen-title { background: #37474f; color: #fff; padding: 8px 14px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+  .screen-title .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5f57; display: inline-block; }
+  .screen-title .dot2 { background: #febc2e; }
+  .screen-title .dot3 { background: #28c840; }
+  .screen-body { padding: 0; }
+
+  /* Login Screen */
+  .login-screen { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); padding: 40px 24px; display: flex; flex-direction: column; align-items: center; }
+  .login-logo { color: #fff; font-size: 20px; font-weight: bold; margin-bottom: 24px; text-align: center; }
+  .login-logo small { display: block; font-size: 12px; color: #90caf9; margin-top: 4px; }
+  .login-box { background: #fff; border-radius: 8px; padding: 24px; width: 100%; max-width: 280px; }
+  .login-box h3 { font-size: 16px; margin-bottom: 16px; color: #333; text-align: center; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .form-group .input-mock { border: 1px solid #ddd; border-radius: 4px; padding: 8px 10px; font-size: 13px; color: #999; background: #fafafa; }
+  .btn-primary { background: #1565c0; color: #fff; border: none; border-radius: 4px; padding: 10px; width: 100%; font-size: 14px; cursor: pointer; margin-top: 8px; }
+
+  /* Main Layout */
+  .main-layout { display: flex; height: 320px; }
+  .sidebar { width: 140px; background: #263238; flex-shrink: 0; }
+  .sidebar-logo { padding: 12px; color: #fff; font-size: 13px; font-weight: bold; border-bottom: 1px solid #37474f; }
+  .sidebar-menu { padding: 8px 0; }
+  .menu-item { padding: 8px 14px; font-size: 12px; color: #b0bec5; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+  .menu-item.active { background: #1565c0; color: #fff; }
+  .menu-item:hover { background: #37474f; }
+  .menu-icon { width: 14px; height: 14px; background: #546e7a; border-radius: 2px; flex-shrink: 0; }
+  .menu-item.active .menu-icon { background: #90caf9; }
+  .main-content { flex: 1; background: #f5f5f5; overflow: hidden; }
+  .topbar { background: #fff; padding: 8px 14px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+  .topbar-title { font-size: 14px; font-weight: bold; color: #333; }
+  .topbar-user { font-size: 12px; color: #666; }
+  .content-area { padding: 12px; }
+
+  /* Table */
+  .table-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .search-bar { display: flex; gap: 6px; }
+  .input-sm { border: 1px solid #ddd; border-radius: 4px; padding: 5px 8px; font-size: 12px; color: #999; background: #fafafa; width: 120px; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+  .btn-blue { background: #1565c0; color: #fff; }
+  .btn-green { background: #2e7d32; color: #fff; }
+  .btn-gray { background: #e0e0e0; color: #555; }
+  .mock-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mock-table th { background: #eceff1; padding: 6px 8px; text-align: left; color: #555; border-bottom: 1px solid #ddd; }
+  .mock-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; color: #444; }
+  .mock-table tr:hover td { background: #f5f5f5; }
+  .tag { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+  .tag-blue { background: #e3f2fd; color: #1565c0; }
+  .tag-green { background: #e8f5e9; color: #2e7d32; }
+  .tag-orange { background: #fff3e0; color: #e65100; }
+  .action-btns { display: flex; gap: 4px; }
+  .btn-xs { padding: 2px 6px; font-size: 11px; border: none; border-radius: 3px; cursor: pointer; }
+  .btn-xs.view { background: #e3f2fd; color: #1565c0; }
+  .btn-xs.edit { background: #e8f5e9; color: #2e7d32; }
+  .btn-xs.del { background: #ffebee; color: #c62828; }
+  .btn-xs.deploy { background: #fff3e0; color: #e65100; }
+
+  /* Config Edit */
+  .config-edit { padding: 12px; }
+  .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .edit-title { font-size: 13px; font-weight: bold; }
+  .edit-actions { display: flex; gap: 6px; }
+  .code-editor { background: #1e1e1e; border-radius: 4px; padding: 12px; font-family: monospace; font-size: 11px; color: #d4d4d4; height: 160px; overflow: hidden; }
+  .code-line { line-height: 1.6; }
+  .code-comment { color: #6a9955; }
+  .code-key { color: #9cdcfe; }
+  .code-value { color: #ce9178; }
+  .code-block { color: #c586c0; }
+
+  /* Log Screen */
+  .log-filter { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  /* Pagination */
+  .pagination { display: flex; gap: 4px; justify-content: flex-end; margin-top: 8px; }
+  .page-btn { padding: 3px 7px; font-size: 11px; border: 1px solid #ddd; border-radius: 3px; background: #fff; cursor: pointer; }
+  .page-btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+
+  /* Modal */
+  .modal-overlay { background: rgba(0,0,0,0.3); padding: 20px; display: flex; align-items: center; justify-content: center; height: 320px; }
+  .modal { background: #fff; border-radius: 8px; padding: 20px; width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .modal-title { font-size: 15px; font-weight: bold; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+
+  .full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  Nginx 集群配置管理系统 — 原型图
+  <span>线框图 · 简洁版 · 6 个核心页面</span>
+</div>
+
+<div class="prototype-grid">
+
+  <!-- Screen 1: Login -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 1 — 登录页
+    </div>
+    <div class="screen-body">
+      <div class="login-screen">
+        <div class="login-logo">
+          ⚙ Nginx 配置管理系统
+          <small>Nginx Cluster Config Manager</small>
+        </div>
+        <div class="login-box">
+          <h3>用户登录</h3>
+          <div class="form-group">
+            <label>用户名</label>
+            <div class="input-mock">请输入用户名</div>
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <div class="input-mock">请输入密码</div>
+          </div>
+          <button class="btn-primary">登 录</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Config List -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 2 — 配置管理列表
+    </div>
+    <div class="screen-body">
+      <div class="main-layout">
+        <div class="sidebar">
+          <div class="sidebar-logo">⚙ Nginx管理</div>
+          <div class="sidebar-menu">
+            <div class="menu-item"><div class="menu-icon"></div>首页</div>
+            <div class="menu-item active"><div class="menu-icon"></div>配置管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>主机管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>集群管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>用户管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>操作日志</div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="topbar">
+            <div class="topbar-title">配置管理</div>
+            <div class="topbar-user">admin ▾</div>
+          </div>
+          <div class="content-area">
+            <div class="table-toolbar">
+              <div class="search-bar">
+                <input class="input-sm" placeholder="搜索配置文件...">
+                <button class="btn-sm btn-gray">查询</button>
+              </div>
+              <button class="btn-sm btn-blue">+ 新增配置</button>
+            </div>
+            <table class="mock-table">
+              <thead>
+                <tr><th>配置文件</th><th>集群</th><th>更新时间</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>upstream.conf</td>
+                  <td><span class="tag tag-blue">生产集群</span></td>
+                  <td>2025-04-10</td>
+                  <td><div class="action-btns"><button class="btn-xs view">查看</button><button class="btn-xs edit">编辑</button><button class="btn-xs deploy">下发</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>server.conf</td>
+                  <td><span class="tag tag-green">测试集群</span></td>
+                  <td>2025-04-09</td>
+                  <td><div class="action-btns"><button class="btn-xs view">查看</button><button class="btn-xs edit">编辑</button><button class="btn-xs deploy">下发</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>proxy.conf</td>
+                  <td><span class="tag tag-orange">预发集群</span></td>
+                  <td>2025-04-08</td>
+                  <td><div class="action-btns"><button class="btn-xs view">查看</button><button class="btn-xs edit">编辑</button><button class="btn-xs deploy">下发</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pagination">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Config Edit -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 3 — 配置编辑页
+    </div>
+    <div class="screen-body">
+      <div class="main-layout">
+        <div class="sidebar">
+          <div class="sidebar-logo">⚙ Nginx管理</div>
+          <div class="sidebar-menu">
+            <div class="menu-item"><div class="menu-icon"></div>首页</div>
+            <div class="menu-item active"><div class="menu-icon"></div>配置管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>主机管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>集群管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>用户管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>操作日志</div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="topbar">
+            <div class="topbar-title">编辑配置 — upstream.conf</div>
+            <div class="topbar-user">admin ▾</div>
+          </div>
+          <div class="config-edit">
+            <div class="edit-header">
+              <div class="edit-title">upstream.conf <span class="tag tag-blue">生产集群</span></div>
+              <div class="edit-actions">
+                <button class="btn-sm btn-blue">保存</button>
+                <button class="btn-sm btn-gray">取消</button>
+              </div>
+            </div>
+            <div class="code-editor">
+              <div class="code-line"><span class="code-comment"># upstream 配置</span></div>
+              <div class="code-line"><span class="code-block">upstream</span> <span class="code-key">backend</span> {</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">server</span> <span class="code-value">192.168.1.10:8080</span>;</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">server</span> <span class="code-value">192.168.1.11:8080</span>;</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">keepalive</span> <span class="code-value">32</span>;</div>
+              <div class="code-line">}</div>
+              <div class="code-line">&nbsp;</div>
+              <div class="code-line"><span class="code-block">server</span> {</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">listen</span> <span class="code-value">80</span>;</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">server_name</span> <span class="code-value">example.com</span>;</div>
+              <div class="code-line">&nbsp;&nbsp;<span class="code-key">location</span> / {</div>
+              <div class="code-line">&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">proxy_pass</span> <span class="code-value">http://backend</span>;</div>
+              <div class="code-line">&nbsp;&nbsp;}</div>
+              <div class="code-line">}</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn-sm btn-blue">下发配置</button>
+              <button class="btn-sm" style="background:#7b1fa2;color:#fff">校验 (nginx -t)</button>
+              <button class="btn-sm" style="background:#00838f;color:#fff">Reload</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Cluster Management -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 4 — 集群管理
+    </div>
+    <div class="screen-body">
+      <div class="main-layout">
+        <div class="sidebar">
+          <div class="sidebar-logo">⚙ Nginx管理</div>
+          <div class="sidebar-menu">
+            <div class="menu-item"><div class="menu-icon"></div>首页</div>
+            <div class="menu-item"><div class="menu-icon"></div>配置管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>主机管理</div>
+            <div class="menu-item active"><div class="menu-icon"></div>集群管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>用户管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>操作日志</div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="topbar">
+            <div class="topbar-title">集群管理</div>
+            <div class="topbar-user">admin ▾</div>
+          </div>
+          <div class="content-area">
+            <div class="table-toolbar">
+              <div class="search-bar">
+                <input class="input-sm" placeholder="搜索集群...">
+                <button class="btn-sm btn-gray">查询</button>
+              </div>
+              <button class="btn-sm btn-blue">+ 新增集群</button>
+            </div>
+            <table class="mock-table">
+              <thead>
+                <tr><th>集群名称</th><th>英文名</th><th>本地路径</th><th>主机数</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>生产集群</td>
+                  <td>prod</td>
+                  <td>/data1/opt/nginx/conf/</td>
+                  <td>5</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>测试集群</td>
+                  <td>test</td>
+                  <td>/data1/opt/nginx/conf/</td>
+                  <td>2</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>预发集群</td>
+                  <td>staging</td>
+                  <td>/data1/opt/nginx/conf/</td>
+                  <td>3</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 5: User Management -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 5 — 用户管理
+    </div>
+    <div class="screen-body">
+      <div class="main-layout">
+        <div class="sidebar">
+          <div class="sidebar-logo">⚙ Nginx管理</div>
+          <div class="sidebar-menu">
+            <div class="menu-item"><div class="menu-icon"></div>首页</div>
+            <div class="menu-item"><div class="menu-icon"></div>配置管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>主机管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>集群管理</div>
+            <div class="menu-item active"><div class="menu-icon"></div>用户管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>操作日志</div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="topbar">
+            <div class="topbar-title">用户管理</div>
+            <div class="topbar-user">admin ▾</div>
+          </div>
+          <div class="content-area">
+            <div class="table-toolbar">
+              <div class="search-bar">
+                <input class="input-sm" placeholder="搜索用户...">
+                <button class="btn-sm btn-gray">查询</button>
+              </div>
+              <button class="btn-sm btn-blue">+ 新增用户</button>
+            </div>
+            <table class="mock-table">
+              <thead>
+                <tr><th>用户名</th><th>角色</th><th>创建时间</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>admin</td>
+                  <td><span class="tag tag-orange">管理员</span></td>
+                  <td>2025-01-01</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>ops_user1</td>
+                  <td><span class="tag tag-blue">普通用户</span></td>
+                  <td>2025-02-15</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+                <tr>
+                  <td>ops_user2</td>
+                  <td><span class="tag tag-blue">普通用户</span></td>
+                  <td>2025-03-20</td>
+                  <td><div class="action-btns"><button class="btn-xs edit">编辑</button><button class="btn-xs del">删除</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 6: Operation Log -->
+  <div class="screen">
+    <div class="screen-title">
+      <span class="dot"></span><span class="dot dot2"></span><span class="dot dot3"></span>
+      &nbsp; 页面 6 — 操作日志
+    </div>
+    <div class="screen-body">
+      <div class="main-layout">
+        <div class="sidebar">
+          <div class="sidebar-logo">⚙ Nginx管理</div>
+          <div class="sidebar-menu">
+            <div class="menu-item"><div class="menu-icon"></div>首页</div>
+            <div class="menu-item"><div class="menu-icon"></div>配置管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>主机管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>集群管理</div>
+            <div class="menu-item"><div class="menu-icon"></div>用户管理</div>
+            <div class="menu-item active"><div class="menu-icon"></div>操作日志</div>
+          </div>
+        </div>
+        <div class="main-content">
+          <div class="topbar">
+            <div class="topbar-title">操作日志</div>
+            <div class="topbar-user">admin ▾</div>
+          </div>
+          <div class="content-area">
+            <div class="log-filter">
+              <input class="input-sm" placeholder="用户名">
+              <input class="input-sm" placeholder="集群名">
+              <input class="input-sm" placeholder="开始日期">
+              <input class="input-sm" placeholder="结束日期">
+              <button class="btn-sm btn-gray">查询</button>
+            </div>
+            <table class="mock-table">
+              <thead>
+                <tr><th>时间</th><th>用户</th><th>集群</th><th>主机</th><th>操作</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>04-10 14:32</td>
+                  <td>admin</td>
+                  <td>生产集群</td>
+                  <td>web-01</td>
+                  <td><span class="tag tag-orange">下发配置</span></td>
+                </tr>
+                <tr>
+                  <td>04-10 14:30</td>
+                  <td>admin</td>
+                  <td>生产集群</td>
+                  <td>web-01</td>
+                  <td><span class="tag tag-blue">nginx -t</span></td>
+                </tr>
+                <tr>
+                  <td>04-10 14:28</td>
+                  <td>ops_user1</td>
+                  <td>测试集群</td>
+                  <td>test-01</td>
+                  <td><span class="tag tag-green">reload</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pagination">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">...</button>
+              <button class="page-btn">10</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
