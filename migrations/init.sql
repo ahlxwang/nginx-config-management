@@ -34,6 +34,7 @@ CREATE TABLE hosts (
   backup_dir VARCHAR(256) NOT NULL DEFAULT '/etc/nginx-backups',
   sbin_nginx VARCHAR(256) NOT NULL DEFAULT '/usr/sbin/nginx',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_cluster_hostname (cluster_id, hostname),
   FOREIGN KEY (cluster_id) REFERENCES clusters(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
@@ -53,11 +54,13 @@ CREATE TABLE nginx_config_versions (
   config_id INT NOT NULL,
   version INT NOT NULL,
   content MEDIUMTEXT NOT NULL,
-  created_by VARCHAR(50) NOT NULL,
+  created_by_user_id INT,
+  created_by_username VARCHAR(50) NOT NULL,  -- 冗余存储，防止用户删除后丢失历史
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   comment VARCHAR(512),
   UNIQUE KEY uk_config_version (config_id, version),
-  FOREIGN KEY (config_id) REFERENCES nginx_config(id) ON DELETE CASCADE
+  FOREIGN KEY (config_id) REFERENCES nginx_config(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE user_cluster_permissions (
@@ -78,12 +81,13 @@ CREATE TABLE oplog (
   cluster_id INT,
   hostname VARCHAR(100),
   file_path VARCHAR(512),
-  operation VARCHAR(512) NOT NULL,
+  operation TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_user_id (user_id),
   INDEX idx_cluster_id (cluster_id),
   INDEX idx_created_at (created_at),
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE RESTRICT,
+  FOREIGN KEY (cluster_id) REFERENCES clusters(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 CREATE TABLE tasklog (
@@ -94,16 +98,20 @@ CREATE TABLE tasklog (
   config_id INT NOT NULL,
   config_version INT NOT NULL,
   hostname VARCHAR(100) NOT NULL,
+  triggered_by_user_id INT,
   status ENUM('pending','running','success','failed') DEFAULT 'pending',
-  result TEXT,
+  result MEDIUMTEXT,
   push_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   finish_time TIMESTAMP NULL,
   INDEX idx_task_id (task_id),
   INDEX idx_cluster_id (cluster_id),
+  INDEX idx_host_id (host_id),
+  INDEX idx_config_id (config_id),
   INDEX idx_push_time (push_time),
   FOREIGN KEY (cluster_id) REFERENCES clusters(id) ON DELETE RESTRICT,
   FOREIGN KEY (host_id) REFERENCES hosts(id) ON DELETE RESTRICT,
-  FOREIGN KEY (config_id) REFERENCES nginx_config(id) ON DELETE RESTRICT
+  FOREIGN KEY (config_id) REFERENCES nginx_config(id) ON DELETE RESTRICT,
+  FOREIGN KEY (triggered_by_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 SET FOREIGN_KEY_CHECKS = 1;
